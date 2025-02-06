@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Plus, Users, Calendar, FileEdit, BookOpenCheck, MoreVertical, Delete } from "lucide-react";
+import { BookOpen, Plus, Users, Calendar, FileEdit, BookOpenCheck, MoreVertical, Delete, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import getInstructorCourse from "@/hooks/getInstructorCourse";
@@ -97,8 +97,8 @@ export default function ManageCourse() {
 
               <Link to={`/instructor/courses/view/${course._id}`}>
                 <Button variant="outline" size="sm" className="flex gap-1">
-                  <FileEdit className="mr-2 h-4 w-4" />
-                  Edit Course
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Course
                 </Button>
               </Link>
             </CardFooter>

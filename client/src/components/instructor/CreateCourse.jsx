@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Save } from "lucide-react";
@@ -13,6 +12,7 @@ import { setLoading } from "@/redux/authSlice";
 import { COURSE_API_END_POINT } from "@/utils/constant";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import RichTextEditor from "../shared/RichTextEditor";
 
 export default function CreateCourse() {
     const [courseData, setCourseData] = useState({
@@ -58,7 +58,7 @@ export default function CreateCourse() {
         try {
             dispatch(setLoading(true));
             const res = await axios.post(`${COURSE_API_END_POINT}/create`, formData, {
-                headers: { "Content-Type": "multipart/form-data" }, 
+                headers: { "Content-Type": "multipart/form-data" },
                 withCredentials: true,
             });
             if (res.data.success) {
@@ -74,7 +74,7 @@ export default function CreateCourse() {
     };
 
     return (
-        <div className="p-6 space-y-6 lg:max-w-4xl mx-auto">
+        <div className="p-6 space-y-6 lg:max-w-5xl mx-auto">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Create New Course</h1>
                 <Button onClick={handleSubmit} className="hidden sm:flex">
@@ -99,7 +99,7 @@ export default function CreateCourse() {
                         </div>
                         <div>
                             <Label htmlFor="description">Course Description *</Label>
-                            <Textarea id="description" name="description" value={courseData.description} onChange={handleInputChange} placeholder="Enter course description" rows={5} />
+                            <RichTextEditor input={courseData} setInput={setCourseData} />
                         </div>
                         <div>
                             <Label htmlFor="category">Course Category *</Label>

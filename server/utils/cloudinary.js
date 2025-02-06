@@ -16,11 +16,6 @@ export const uploadMediaToCloudinary = async (file) => {
         return uploadRes;
     } catch (error) {
         console.error(error);
-        return res.status(500).json({
-            message: "An unexpected error occurred.",
-            success: false,
-            error: error.message
-        });
     }
 }
 
@@ -29,11 +24,6 @@ export const deleteMediaFromCloudinary = async (publicId) => {
         await cloudinary.uploader.destroy(publicId);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({
-            message: "An unexpected error occurred.",
-            success: false,
-            error: error.message
-        });
     }
 }
 
@@ -44,10 +34,5 @@ export const deleteVideoFromCloudinary = async (publicId) => {
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({
-            message: "An unexpected error occurred.",
-            success: false,
-            error: error.message
-        });
     }
 }

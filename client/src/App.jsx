@@ -23,6 +23,7 @@ import InstructDashboard from './components/instructor/InstructDashboard';
 import ManageCourse from './components/instructor/ManageCourse';
 import CreateCourse from './components/instructor/CreateCourse';
 import AddLectures from './components/instructor/AddLectures';
+import EditCourse from './components/instructor/EditCourse';
 
 const appRouter = createBrowserRouter([
   {
@@ -84,6 +85,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/instructor/courses/create",
     element: <SidebarProvider><Sidebar><CreateCourse /></Sidebar></SidebarProvider>
+  },
+  {
+    path: "/instructor/courses/edit/:id",
+    element: <SidebarProvider><Sidebar><EditCourse /></Sidebar></SidebarProvider>
   },
   {
     path: "/instructor/courses/addLecture/:courseId",

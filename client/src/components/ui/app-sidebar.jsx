@@ -26,7 +26,7 @@ export function AppSidebar({ navData, ...props }) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link to="/" className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
                                 <Link
                                     to="/"
                                     className="flex items-center gap-2 group"
@@ -45,7 +45,7 @@ export function AppSidebar({ navData, ...props }) {
                                         <span className="text-xs text-gray-400">Learn, Grow, Succeed</span>
                                     </div>
                                 </Link>
-                            </Link>
+                            </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
