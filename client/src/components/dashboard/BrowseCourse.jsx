@@ -1,143 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Search, Filter, ChevronDown } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter, DialogHeader } from "../ui/dialog";
 import { CourseCard } from "../shared/CourseCard";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import getAllPublishedCourses from "@/hooks/getAllPublishedCourses";
+import { useSelector, useDispatch } from "react-redux";
 
 const BrowseCourses = () => {
-    const [courses, setCourses] = useState([
-        {
-            id: 1,
-            title: "Complete Web Development Bootcamp",
-            instructor: "John Doe",
-            rating: "4.9",
-            duration: "32 hours",
-            difficulty: "Beginner",
-            originalPrice: 199,
-            discountedPrice: 149,
-            category: "Development",
-            thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
-        },
-        {
-            id: 2,
-            title: "Introduction to Machine Learning",
-            instructor: "Alice Johnson",
-            rating: "4.7",
-            duration: "25 hours",
-            difficulty: "Intermediate",
-            originalPrice: 249,
-            discountedPrice: 199,
-            category: "Data Science",
-            thumbnail: "https://www.mygreatlearning.com/blog/wp-content/uploads/2019/09/What-is-data-science-2.jpg",
-        },
-        {
-            id: 3,
-            title: "Graphic Design Masterclass",
-            instructor: "Emma Wilson",
-            rating: "4.8",
-            duration: "20 hours",
-            difficulty: "All Levels",
-            originalPrice: 149,
-            discountedPrice: 99,
-            category: "Design",
-            thumbnail: "https://img.freepik.com/free-photo/ui-ux-representations-with-laptop_23-2150201871.jpg?semt=ais_hybrid",
-        },
-        {
-            id: 4,
-            title: "Advanced Python Programming",
-            instructor: "Jane Smith",
-            rating: "4.8",
-            duration: "24 hours",
-            difficulty: "Advanced",
-            originalPrice: 179,
-            discountedPrice: 149,
-            category: "Programming",
-            thumbnail: "https://cdn.builtin.com/cdn-cgi/image/f=auto,fit=cover,w=1200,h=635,q=80/https://builtin.com/sites/www.builtin.com/files/2024-09/programming-languages.jpg",
-        },
-        {
-            id: 5,
-            title: "Digital Marketing Strategies",
-            instructor: "Michael Brown",
-            rating: "4.6",
-            duration: "18 hours",
-            difficulty: "Intermediate",
-            originalPrice: 129,
-            discountedPrice: 89,
-            category: "Marketing",
-            thumbnail: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-        },
-        {
-            id: 6,
-            title: "Photography Essentials",
-            instructor: "Sophia Lee",
-            rating: "4.5",
-            duration: "15 hours",
-            difficulty: "Beginner",
-            originalPrice: 99,
-            discountedPrice: 69,
-            category: "Photography",
-            thumbnail: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*zbjSpGnDnr-bYakH",
-        },
-        {
-            id: 7,
-            title: "Digital Marketing Strategies",
-            instructor: "Michael Brown",
-            rating: "4.6",
-            duration: "18 hours",
-            difficulty: "Intermediate",
-            originalPrice: 129,
-            discountedPrice: 89,
-            category: "Marketing",
-            thumbnail: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-        },
-        {
-            id: 8,
-            title: "Photography Essentials",
-            instructor: "Sophia Lee",
-            rating: "4.5",
-            duration: "15 hours",
-            difficulty: "Beginner",
-            originalPrice: 99,
-            discountedPrice: 69,
-            category: "Photography",
-            thumbnail: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*zbjSpGnDnr-bYakH",
-        },
-        {
-            id: 9,
-            title: "Photography Essentials",
-            instructor: "Sophia Lee",
-            rating: "4.5",
-            duration: "15 hours",
-            difficulty: "Beginner",
-            originalPrice: 99,
-            discountedPrice: 69,
-            category: "Photography",
-            thumbnail: "https://miro.medium.com/v2/resize:fit:720/format:webp/0*zbjSpGnDnr-bYakH",
-        },
-    ]);
+    getAllPublishedCourses()
 
+    const { courses } = useSelector(store => store.course);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedDifficulty, setSelectedDifficulty] = useState("");
-    const [priceRange, setPriceRange] = useState([0, 300]);
+    const [priceRange, setPriceRange] = useState([0, 1000]);
     const [sortOrder, setSortOrder] = useState("none");
     const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
 
     const categories = Array.from(new Set(courses.map(c => c.category)));
-    const difficulties = Array.from(new Set(courses.map(c => c.difficulty)));
 
     const filteredCourses = courses
-        .filter((course) => course.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter((course) => course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase()))
         .filter((course) => (selectedCategory ? course.category === selectedCategory : true))
-        .filter((course) => (selectedDifficulty ? course.difficulty === selectedDifficulty : true))
-        .filter((course) => course.discountedPrice >= priceRange[0] && course.discountedPrice <= priceRange[1])
+        .filter((course) => (selectedDifficulty ? course.courseLevel === selectedDifficulty : true))
+        .filter((course) => (
+            priceRange[0] !== 0 || priceRange[1] !== 1000
+                ? course.coursePrice >= priceRange[0] && course.coursePrice <= priceRange[1]
+                : true
+        ))
         .sort((a, b) => {
-            if (sortOrder === "high-to-low") return b.discountedPrice - a.discountedPrice;
-            if (sortOrder === "low-to-high") return a.discountedPrice - b.discountedPrice;
+            if (sortOrder === "high-to-low") return b.coursePrice - a.coursePrice;
+            if (sortOrder === "low-to-high") return a.coursePrice - b.coursePrice;
             return 0;
         });
-
 
     return (
         <main className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 bg-gradient-to-b from-[#395972]/5 to-white rounded min-h-screen">
@@ -167,7 +63,9 @@ const BrowseCourses = () => {
                                 <DropdownMenuItem onClick={() => setSelectedCategory("")}>All Categories</DropdownMenuItem>
                                 {
                                     categories.map(category => (
-                                        <DropdownMenuItem key={categories} onClick={() => setSelectedCategory({category})}>{category}</DropdownMenuItem>
+                                        <DropdownMenuItem key={category} onClick={() => setSelectedCategory(category)}>
+                                            {category}
+                                        </DropdownMenuItem>
                                     ))
                                 }
                             </DropdownMenuContent>
@@ -200,12 +98,12 @@ const BrowseCourses = () => {
                                         <input
                                             type="range"
                                             min="0"
-                                            max="300"
+                                            max="1000"
                                             value={priceRange[1]}
                                             onChange={(e) => setPriceRange([0, Number(e.target.value)])}
                                             className="w-full appearance-none h-2 bg-gray-300 rounded-lg outline-none"
                                             style={{
-                                                background: `linear-gradient(to right, #395972 ${priceRange[1] / 300 * 100}%, #e2e8f0 0%)`,
+                                                background: `linear-gradient(to right, #395972 ${priceRange[1] / 1005 * 100}%, #e2e8f0 0%)`,
                                             }}
                                         />
                                         <p className="text-sm text-gray-500">Up to ${priceRange[1]}</p>
@@ -229,8 +127,8 @@ const BrowseCourses = () => {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 cursor-pointer">
-                    {filteredCourses.map((course) => (
-                        <CourseCard key={course.id} course={course} />
+                    {filteredCourses.map((course, index) => (
+                        <CourseCard key={index} course={course} />
                     ))}
                 </div>
                 {filteredCourses.length === 0 && (

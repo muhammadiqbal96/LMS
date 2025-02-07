@@ -1,6 +1,6 @@
 import { Course } from "../models/course.model.js";
 import { Lecture } from "../models/lecture.model.js";
-import { uploadMediaToCloudinary } from "../utils/cloudinary.js";
+import { deleteVideoFromCloudinary, uploadMediaToCloudinary } from "../utils/cloudinary.js";
 
 export const createCourse = async (req, res) => {
     try {
@@ -43,7 +43,6 @@ export const createCourse = async (req, res) => {
         });
     }
 }
-
 
 export const getCreatorCourses = async (req, res) => {
     try {
@@ -145,6 +144,31 @@ export const updateCourse = async (req, res) => {
     }
 }
 
+export const getPublishedCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({ isPublished: true }).populate({ path: "creator", select: "name" });
+        if (!courses) {
+            return res.status(400).json({
+                courses: [],
+                message: "Course not found.",
+                success: false
+            })
+        }
+
+        return res.status(200).json({
+            courses,
+            success: true
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+};
+
 // Lecture Controller
 export const createLecture = async (req, res) => {
     try {
@@ -214,3 +238,77 @@ export const getCourseLectures = async (req, res) => {
         });
     }
 };
+
+export const updateCourseLecture = async (req, res) => {
+    try {
+        const { lectureTitle, description, isPreviewFree } = req.body;
+        const file = req.file;
+        const lectureId = req.params.id;
+
+        let lecture = await Lecture.findById(lectureId);
+        if (!lecture) {
+            return res.status(400).json({
+                message: "Lecture not found.",
+                success: false
+            })
+        }
+
+        if (lectureTitle) lecture.lectureTitle = lectureTitle;
+        if (description) lecture.description = description;
+        if (isPreviewFree) lecture.isPreviewFree = isPreviewFree;
+        if (file) {
+            if (lecture.videoUrl) {
+                const lecturevideo = lecture.videoUrl;
+                const publicId = lecturevideo.split("/").pop().split(".")[0];
+                deleteVideoFromCloudinary(publicId);
+            }
+            const cloudRes = await uploadMediaToCloudinary(file.path);
+            lecture.videoUrl = cloudRes.secure_url;
+        }
+
+        await lecture.save();
+        return res.status(200).json({
+            message: "Lecture updated successfully.",
+            success: true
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+export const deleteCourseLecture = async (req, res) => {
+    try {
+        const lectureId = req.params.id;
+        let lecture = await Lecture.findById(lectureId);
+        if (!lecture) {
+            return res.status(400).json({
+                message: "Lecture not found.",
+                success: false
+            })
+        }
+        if (lecture.videoUrl) {
+            const lecturevideo = lecture.videoUrl;
+            const publicId = lecturevideo.split("/").pop().split(".")[0];
+            deleteVideoFromCloudinary(publicId);
+        }
+
+        await Lecture.deleteOne({ _id: lectureId });
+        return res.status(200).json({
+            message: "Lecture deleted successfully.",
+            success: true
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+}

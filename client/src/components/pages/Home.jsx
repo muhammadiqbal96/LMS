@@ -7,10 +7,11 @@ import CallToAction from './CallToAction'
 import Footer from '../shared/Footer'
 import { useDispatch } from 'react-redux'
 import { checkLoginExpiry } from '@/redux/authSlice'
+import getAllPublishedCourses from '@/hooks/getAllPublishedCourses'
 
 export default function Home() {
+  getAllPublishedCourses();
   const dispatch = useDispatch();
-
   useEffect(() => {
     dispatch(checkLoginExpiry());
   }, [dispatch]);

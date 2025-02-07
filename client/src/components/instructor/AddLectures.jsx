@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { Save, Pencil, Trash2, PlayCircle } from "lucide-react";
+import { Save, Trash2, PlayCircle, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "@/redux/authSlice";
 import { COURSE_API_END_POINT } from "@/utils/constant";
 import { setlectures } from "@/redux/courseSlice";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 
 export default function ManageLectures() {
   const { courseId } = useParams();
@@ -35,10 +36,7 @@ export default function ManageLectures() {
     isPreviewFree: false,
   });
 
-  const [editId, setEditId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const API_BASE_URL = "https://your-api.com/courses"; // Replace with your API
 
   useEffect(() => {
     fetchLectures();
@@ -102,6 +100,12 @@ export default function ManageLectures() {
       });
       if (res.data.success) {
         fetchLectures();
+        setNewLecture({
+          lectureTitle: "",
+          description: "",
+          video: null,
+          isPreviewFree: false,
+        });
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -112,11 +116,12 @@ export default function ManageLectures() {
     }
   };
 
+  const [lectureId, setlectureId] = useState('');
   // Open Edit Dialog
   const handleEdit = (id) => {
+    setlectureId(id);
     const lecture = lectures.find((lecture) => lecture._id === id);
     setEditLecture(lecture);
-    setEditId(id);
     setIsDialogOpen(true);
   };
 
@@ -124,36 +129,41 @@ export default function ManageLectures() {
   const handleUpdateLecture = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      formData.append("lectureTitle", editLecture.lectureTitle);
-      formData.append("description", editLecture.description);
-      formData.append("video", editLecture.video);
-      formData.append("isPreviewFree", editLecture.isPreviewFree);
-
-      await axios.put(`${API_BASE_URL}/${courseId}/lectures/${editId}`, formData);
-      toast.success("Lecture updated successfully!");
-      fetchLectures(); // Refresh the list
-      setIsDialogOpen(false);
-    } catch (error) {
-      toast.error("Failed to update lecture.");
-    } finally {
-      setEditLecture({
-        lectureTitle: "",
-        description: "",
-        video: null,
-        isPreviewFree: false,
+      dispatch(setLoading(true));
+      const res = await axios.put(`${COURSE_API_END_POINT}/${lectureId}/update_lecture`, editLecture, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
       });
+      if (res.data.success) {
+        fetchLectures();
+        toast.success(res.data.message);
+        setIsDialogOpen(false);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
+  const [delLectureId, setdelLectureId] = useState();
   // Delete Lecture
-  const handleDelete = async (lectureId) => {
+  const handleDelete = async (e) => {
+    console.log(delLectureId);
+    e.preventDefault();
     try {
-      await axios.delete(`${API_BASE_URL}/${courseId}/lectures/${lectureId}`);
-      toast.success("Lecture deleted successfully!");
-      fetchLectures(); // Refresh the list
+      dispatch(setLoading(true));
+      const res = await axios.get(`${COURSE_API_END_POINT}/${delLectureId}/delete_lectures`, { withCredentials: true });
+      if (res.data.success) {
+        fetchLectures();
+        toast.success(res.data.message);
+      }
     } catch (error) {
-      toast.error("Failed to delete lecture.");
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -161,7 +171,6 @@ export default function ManageLectures() {
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Manage Lectures</h1>
 
-      {/* Add New Lecture Form */}
       <form onSubmit={handleAddLecture} className="space-y-6">
         <Card>
           <CardHeader>
@@ -207,10 +216,10 @@ export default function ManageLectures() {
                 className="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-4 rounded-lg shadow-sm hover:shadow-md transition-all"
               >
                 {/* Lecture Title and Preview Status */}
-                <div className="flex-1 space-y-2 sm:space-y-0 sm:flex sm:items-center">
+                <div className="flex-1 space-y-2 sm:space-y-0 sm:flex sm:items-center mb-2 sm:mb-0 ">
                   <h3 className="text-lg font-semibold">{lecture.lectureTitle}</h3>
                   <span
-                    className={`text-xs font-medium rounded px-2 py-1 ml-2 ${lecture.isPreviewFree ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-800"
+                    className={`text-xs font-medium rounded px-2 py-1 sm:ml-2 whitespace-nowrap ${lecture.isPreviewFree ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-800"
                       }`}
                   >
                     {lecture.isPreviewFree ? "Free Preview" : "Locked"}
@@ -224,7 +233,7 @@ export default function ManageLectures() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
+                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 mr-1"
                         onClick={() => setSelectedVideo(lecture.videoUrl)}
                       >
                         <PlayCircle className="h-4 w-4" />
@@ -248,11 +257,28 @@ export default function ManageLectures() {
                 {/* Action Buttons */}
                 <div className="mt-3 sm:mt-0 flex space-x-2">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(lecture._id)} title="Edit Lecture">
-                    <Pencil className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(lecture._id)} title="Delete Lecture">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" onClick={() => { setdelLectureId(lecture._id); }} title="Delete Lecture">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your
+                          lecture and remove your data from our servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             ))

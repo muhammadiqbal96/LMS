@@ -24,6 +24,7 @@ import ManageCourse from './components/instructor/ManageCourse';
 import CreateCourse from './components/instructor/CreateCourse';
 import AddLectures from './components/instructor/AddLectures';
 import EditCourse from './components/instructor/EditCourse';
+import CourseDetail from './components/pages/CourseDetail';
 
 const appRouter = createBrowserRouter([
   {
@@ -94,12 +95,16 @@ const appRouter = createBrowserRouter([
     path: "/instructor/courses/addLecture/:courseId",
     element: <SidebarProvider><Sidebar><AddLectures /></Sidebar></SidebarProvider>
   },
+  {
+    path: "/course/detail/:courseId",
+    element: <CourseDetail />
+  },
 ]);
 
 function App() {
 
   const dispatch = useDispatch();
-  const {loading} = useSelector(store=>store.auth);
+  const { loading } = useSelector(store => store.auth);
 
   useEffect(() => {
     dispatch(setLoading(true));
@@ -109,7 +114,7 @@ function App() {
 
   return (
     <div>
-       {loading && <Loader />}
+      {loading && <Loader />}
       <RouterProvider router={appRouter} />
     </div>
   )
