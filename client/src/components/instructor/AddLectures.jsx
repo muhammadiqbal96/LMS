@@ -154,7 +154,7 @@ export default function ManageLectures() {
     e.preventDefault();
     try {
       dispatch(setLoading(true));
-      const res = await axios.get(`${COURSE_API_END_POINT}/${delLectureId}/delete_lectures`, { withCredentials: true });
+      const res = await axios.get(`${COURSE_API_END_POINT}/${delLectureId}/${courseId}/delete_lectures`, { withCredentials: true });
       if (res.data.success) {
         fetchLectures();
         toast.success(res.data.message);

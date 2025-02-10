@@ -16,6 +16,6 @@ router.route("/publishedCourses").get(getPublishedCourses);
 router.route("/:id/create_lecture").post(isAuthenticated, upload.single("video"), createLecture);
 router.route("/:id/get_lectures").get(isAuthenticated, getCourseLectures);
 router.route("/:id/update_lecture").put(isAuthenticated, upload.single("video"), updateCourseLecture);
-router.route("/:id/delete_lectures").get(isAuthenticated, deleteCourseLecture);
+router.route("/:lectureId/:courseId/delete_lectures").get(isAuthenticated, deleteCourseLecture);
 
 export default router; 
