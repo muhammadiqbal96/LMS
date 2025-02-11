@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 import { Course } from "../models/course.model.js";
+import { Lecture } from "../models/lecture.model.js";
+import { User } from "../models/user.model.js";
 import { PurchaseCourse } from "../models/purchaseCourse.model.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -14,7 +16,58 @@ export const CreateCheckOutSession = async (req, res) => {
             return res.status(400).json({
                 message: "Course not found.",
                 success: false
-            })
+            });
+        }
+
+        const existingPurchase = await PurchaseCourse.findOne({ courseId, userId });
+        if (existingPurchase) {
+            if (existingPurchase.status === "Completed") {
+                return res.status(200).json({
+                    success: true,
+                    message: "You have already purchased this course.",
+                });
+            } else if (existingPurchase.status === "Pending" || existingPurchase.status === "Failed") {
+                const session = await stripe.checkout.sessions.create({
+                    payment_method_types: ["card"],
+                    line_items: [
+                        {
+                            price_data: {
+                                currency: "usd",
+                                product_data: {
+                                    name: course.courseTitle,
+                                    images: [course.courseThumbnail],
+                                },
+                                unit_amount: course.coursePrice * 100,
+                            },
+                            quantity: 1,
+                        },
+                    ],
+                    mode: "payment",
+                    success_url: `http://localhost:5173/course/progress/${courseId}`, // FRONT_END_URL
+                    cancel_url: `http://localhost:5173/course/detail/${courseId}`, // FRONT_END_URL
+                    metadata: {
+                        courseId: courseId,
+                        userId: userId,
+                    },
+                    shipping_address_collection: {
+                        allowed_countries: ["US"],
+                    },
+                });
+
+                if (!session.url) {
+                    return res.status(400).json({
+                        message: "Error while creating session",
+                        success: false
+                    });
+                }
+
+                existingPurchase.paymentId = session.id;
+                await existingPurchase.save();
+                return res.status(200).json({
+                    success: true,
+                    url: session.url,
+                });
+            }
         }
 
         const newPurchase = new PurchaseCourse({
@@ -29,7 +82,7 @@ export const CreateCheckOutSession = async (req, res) => {
             line_items: [
                 {
                     price_data: {
-                        currency: "inr",
+                        currency: "usd",
                         product_data: {
                             name: course.courseTitle,
                             images: [course.courseThumbnail],
@@ -40,14 +93,14 @@ export const CreateCheckOutSession = async (req, res) => {
                 },
             ],
             mode: "payment",
-            success_url: `http://localhost:5173/course/progress/${courseId}`,
-            cancel_url: `http://localhost:5173/course/detail/${courseId}`,
+            success_url: `http://localhost:5173/course/progress/${courseId}`, // FRONT_END_URL
+            cancel_url: `http://localhost:5173/course/detail/${courseId}`, // FRONT_END_URL
             metadata: {
                 courseId: courseId,
                 userId: userId,
             },
             shipping_address_collection: {
-                allowed_countries: ["IN"],
+                allowed_countries: ["US"],
             },
         });
 
@@ -74,7 +127,8 @@ export const CreateCheckOutSession = async (req, res) => {
             error: error.message
         });
     }
-}
+};
+
 
 export const stripeWebhook = async (req, res) => {
     let event;
@@ -100,7 +154,7 @@ export const stripeWebhook = async (req, res) => {
         try {
             const session = event.data.object;
 
-            const purchase = await CoursePurchase.findOne({
+            const purchase = await PurchaseCourse.findOne({
                 paymentId: session.id,
             }).populate({ path: "courseId" });
 
@@ -111,7 +165,7 @@ export const stripeWebhook = async (req, res) => {
             if (session.amount_total) {
                 purchase.amount = session.amount_total / 100;
             }
-            purchase.status = "completed";
+            purchase.status = "Completed";
 
             if (purchase.courseId && purchase.courseId.lectures.length > 0) {
                 await Lecture.updateMany(
@@ -140,3 +194,4 @@ export const stripeWebhook = async (req, res) => {
     }
     res.status(200).send();
 };
+

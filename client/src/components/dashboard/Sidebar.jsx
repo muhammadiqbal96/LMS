@@ -64,7 +64,7 @@ export default function Sidebar({ children }) {
       url: "/courses/browse",
       items: [
         { title: "Course History", url: "/courses/completed" },
-        { title: "Browse Courses", url: "/courses/browse" },
+        { title: "Browse Courses", url: "/courses" },
       ],
     },
     {

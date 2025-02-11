@@ -6,10 +6,11 @@ import { Link, useParams } from "react-router-dom";
 import Navbar from "../shared/Navbar";
 import Footer from "../shared/Footer";
 import { useDispatch, useSelector } from "react-redux";
-import { COURSE_API_END_POINT } from "@/utils/constant";
+import { COURSE_API_END_POINT, PURCHASE_API_END_POINT } from "@/utils/constant";
 import axios from "axios";
 import { setsingleCourse } from "@/redux/courseSlice";
 import { toast } from "sonner";
+import { setLoading } from "@/redux/authSlice";
 
 export default function CourseDetail() {
   const [selectedLecture, setSelectedLecture] = useState(0);
@@ -32,6 +33,26 @@ export default function CourseDetail() {
 
   const { singleCourse } = useSelector((store) => store.course);
   const { courses } = useSelector((store) => store.course);
+
+  const enrollNowhandler = async () => {
+    dispatch(setLoading(true));
+    try {
+      const res = await axios.post(`${PURCHASE_API_END_POINT}/checkout/create-checkout-session`, { courseId: courseId }, { withCredentials: true });
+
+      if (res.data.message) {
+        toast.success(res.data.message);
+      }
+
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.data?.message || "Failed to create checkout session.");
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
 
   return (
     <>
@@ -146,7 +167,7 @@ export default function CourseDetail() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gray-800">${singleCourse.coursePrice || "N/A"}</h3>
               </div>
-              <Button className="w-full bg-[#395972] hover:bg-[#395972]/90 text-white py-3 rounded-md text-lg">Enroll Now</Button>
+              <Button onClick={enrollNowhandler} className="w-full bg-[#395972] hover:bg-[#395972]/90 text-white py-3 rounded-md text-lg">Enroll Now</Button>
               <p className="text-center text-gray-600 mt-4 text-sm">Gain lifetime access and start learning immediately!</p>
             </Card>
 

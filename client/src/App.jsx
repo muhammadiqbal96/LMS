@@ -25,6 +25,7 @@ import CreateCourse from './components/instructor/CreateCourse';
 import AddLectures from './components/instructor/AddLectures';
 import EditCourse from './components/instructor/EditCourse';
 import CourseDetail from './components/pages/CourseDetail';
+import CourseProgess from './components/pages/CourseProgess';
 
 const appRouter = createBrowserRouter([
   {
@@ -64,10 +65,6 @@ const appRouter = createBrowserRouter([
     element: <SidebarProvider><Sidebar><CourseHistory /></Sidebar></SidebarProvider>
   },
   {
-    path: '/courses/browse',
-    element: <SidebarProvider><Sidebar><BrowseCourses /></Sidebar></SidebarProvider>
-  },
-  {
     path: '/support/faqs',
     element: <SidebarProvider><Sidebar><FaqsPage /></Sidebar></SidebarProvider>
   },
@@ -98,6 +95,10 @@ const appRouter = createBrowserRouter([
   {
     path: "/course/detail/:courseId",
     element: <CourseDetail />
+  },
+  {
+    path: "/course/progress/:courseId",
+    element: <CourseProgess />
   },
 ]);
 
