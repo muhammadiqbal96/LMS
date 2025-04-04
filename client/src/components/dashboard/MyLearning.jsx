@@ -1,71 +1,30 @@
 import { useSelector } from "react-redux";
 import { ProgressCard } from "../shared/ProgressCard";
-
-const courses = [
-    {
-        id: 1,
-        title: "Complete Web Development Bootcamp",
-        instructor: "John Doe",
-        rating: "4.9",
-        duration: "32 hours",
-        difficulty: "Beginner",
-        progress: 60,  
-        assignments: 10,  
-        category: "Development",
-        thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
-    },
-    {
-        id: 2,
-        title: "Introduction to Machine Learning",
-        instructor: "Alice Johnson",
-        rating: "4.7",
-        duration: "25 hours",
-        difficulty: "Intermediate",
-        progress: 90,  
-        assignments: 5, 
-        category: "Data Science",
-        thumbnail: "https://www.mygreatlearning.com/blog/wp-content/uploads/2019/09/What-is-data-science-2.jpg",
-    },
-    {
-        id: 3,
-        title: "Graphic Design Masterclass",
-        instructor: "Emma Wilson",
-        rating: "4.8",
-        duration: "20 hours",
-        difficulty: "All Levels",
-        progress: 30, 
-        assignments: 13, 
-        category: "Design",
-        thumbnail: "https://img.freepik.com/free-photo/ui-ux-representations-with-laptop_23-2150201871.jpg?semt=ais_hybrid",
-    },
-    {
-        id: 4,
-        title: "Advanced Python Programming",
-        instructor: "Jane Smith",
-        rating: "4.8",
-        duration: "24 hours",
-        difficulty: "Advanced",
-        progress: 20,  
-        assignments: 3, 
-        category: "Programming",
-        thumbnail: "https://cdn.builtin.com/cdn-cgi/image/f=auto,fit=cover,w=1200,h=635,q=80/https://builtin.com/sites/www.builtin.com/files/2024-09/programming-languages.jpg",
-    },
-    {
-        id: 5,
-        title: "Digital Marketing Strategies",
-        instructor: "Michael Brown",
-        rating: "4.6",
-        duration: "18 hours",
-        difficulty: "Intermediate",
-        progress: 70, 
-        assignments: 7,  
-        category: "Marketing",
-        thumbnail: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-    },
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { PURCHASE_API_END_POINT } from "../../utils/constant";
+import { Link } from "react-router-dom";
 
 function MyLearning() {
     const { user } = useSelector(store => store.auth);
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEnrolledCourses = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`${PURCHASE_API_END_POINT}/`, { withCredentials: true });
+                console.log(response.data);
+                setEnrolledCourses(response.data.purchasedCourses);
+                setLoading(false);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchEnrolledCourses();
+    }, []);
 
     return (
         <main className="flex-1 p-6 space-y-6 bg-gradient-to-b from-[#395972]/5 to-white rounded min-h-screen">
@@ -87,11 +46,28 @@ function MyLearning() {
                         </div>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 cursor-pointer">
-                    {courses.map((course, index) => (
-                        <ProgressCard key={index} course={course} />
-                    ))}
-                </div>
+
+                {loading ? (
+                    <div className="flex justify-center items-center h-40">
+                        <p>Loading your courses...</p>
+                    </div>
+                ) : enrolledCourses.length === 0 ? (
+                    <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-2">No Courses Enrolled</h2>
+                        <p className="text-gray-600 mb-4">You haven't enrolled in any courses yet.</p>
+                        <Link to="/courses" className="inline-block px-4 py-2 bg-[#395972] text-white rounded-md hover:bg-[#2a4358] transition-colors">
+                            Browse Courses
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 cursor-pointer">
+                        {enrolledCourses.map((course, index) => (
+                            <Link to={`/course/progress/${course.courseId._id}`} key={index}>
+                                <ProgressCard course={course.courseId} />
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </main>
     );

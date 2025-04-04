@@ -73,14 +73,7 @@ export const getCreatorCourses = async (req, res) => {
 export const getCourseById = async (req, res) => {
     try {
         const courseId = req.params.id;
-        const course = await Course.findById(courseId)
-            .populate({
-                path: "lectures"
-            })
-            .populate({
-                path: "creator",
-                select: "name"
-            }).lean();
+        const course = await Course.findById(courseId);
 
         if (!course) {
             return res.status(400).json({
@@ -89,11 +82,6 @@ export const getCourseById = async (req, res) => {
                 success: false
             })
         }
-
-        course.lectures = course.lectures.map(lecture => ({
-            lectureTitle: lecture.lectureTitle,
-            videoUrl: lecture.isPreviewFree === true ? lecture.videoUrl : null
-        }));
 
         return res.status(200).json({
             course,

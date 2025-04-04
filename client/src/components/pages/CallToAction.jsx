@@ -1,5 +1,6 @@
 import { CheckCircle, Rocket } from "lucide-react";
 import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
 
 export default function CallToAction() {
     return (
@@ -25,12 +26,12 @@ export default function CallToAction() {
                     </div>
 
                     <div className="flex gap-4 justify-center">
-                        <Button 
+                       <Link to={"/courses"}> <Button 
                             className="bg-white text-[#395972] hover:bg-gray-100 px-4 py-3 sm:px-8 sm:py-6 text-sm md:text-md lg:text-lg"
                             size="lg"
                         >
                             Explore All Courses
-                        </Button>
+                        </Button></Link>
                         <Button 
                             className="bg-white text-[#395972] hover:bg-gray-100 px-4 py-3 sm:px-8 sm:py-6 text-sm md:text-md lg:text-lg"
                             size="lg"

@@ -5,7 +5,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogFooter, Dialog
 import { CourseCard } from "../shared/CourseCard";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 import getAllPublishedCourses from "@/hooks/getAllPublishedCourses";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 const BrowseCourses = () => {
     getAllPublishedCourses()

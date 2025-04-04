@@ -167,13 +167,6 @@ export const stripeWebhook = async (req, res) => {
             }
             purchase.status = "Completed";
 
-            if (purchase.courseId && purchase.courseId.lectures.length > 0) {
-                await Lecture.updateMany(
-                    { _id: { $in: purchase.courseId.lectures } },
-                    { $set: { isPreviewFree: true } }
-                );
-            }
-
             await purchase.save();
 
             await User.findByIdAndUpdate(
@@ -195,3 +188,79 @@ export const stripeWebhook = async (req, res) => {
     res.status(200).send();
 };
 
+
+export const getCourseDetailWithPurchasedStatus = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const userId = req.id;
+        const course = await Course.findById(courseId)
+            .populate({
+                path: "lectures"
+            })
+            .populate({
+                path: "creator",
+                select: "name"
+            }).lean();
+
+        const purchased = await PurchaseCourse.findOne({ courseId, userId });
+
+        if (!course) {
+            return res.status(400).json({
+                course: [],
+                message: "Course not found.",
+                success: false
+            })
+        }
+        if (!purchased) {
+            course.lectures = course.lectures.map(lecture => ({
+                lectureTitle: lecture.lectureTitle,
+                videoUrl: lecture.isPreviewFree === true ? lecture.videoUrl : null
+            }));
+        }
+        return res.status(200).json({
+            course,
+            purchased: purchased.status == "Completed" ? true : false,
+            success: true
+        })
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+export const getAllPurchasedCourse = async (req, res) => {
+    try {
+        const purchasedCourses = await PurchaseCourse.find({ status: "Completed" }).populate({
+            path: "courseId",
+            populate: {
+                path: "creator",
+                select: "name"
+            },
+        });
+
+        if (!purchasedCourses) {
+            return res.status(400).json({
+                purchasedCourse: [],
+                message: "Course not purchased yet.",
+                success: false
+            })
+        }
+
+        return res.status(200).json({
+            purchasedCourses,
+            success: true
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+}

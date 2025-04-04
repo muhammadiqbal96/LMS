@@ -98,7 +98,7 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/course/progress/:courseId",
-    element: <CourseProgess />
+    element: <SidebarProvider><Sidebar><CourseProgess /></Sidebar></SidebarProvider>
   },
 ]);
 

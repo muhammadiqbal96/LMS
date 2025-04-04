@@ -3,18 +3,16 @@ import { Progress } from "@/components/ui/progress";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Clock, BookOpen, Award, GroupIcon, TrendingUp } from "lucide-react"; // Added TrendingUp icon
 import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { PURCHASE_API_END_POINT } from "../../utils/constant";
+import { Link } from "react-router-dom";
 
 const assignmentData = [
     { name: "Week 1", course: 2 },
     { name: "Week 2", course: 3 },
     { name: "Week 3", course: 1 },
     { name: "Week 4", course: 4 },
-];
-
-const courses = [
-    { title: "Introduction to React", progress: 70, timeToComplete: 3 },
-    { title: "Advanced JavaScript", progress: 40, timeToComplete: 6 },
-    { title: "Data Structures & Algorithms", progress: 90, timeToComplete: 1 },
 ];
 
 const upcomingAssignments = [
@@ -24,7 +22,27 @@ const upcomingAssignments = [
 ];
 
 function Dashboard() {
-    const { user } = useSelector(store => store.auth)
+    const { user } = useSelector(store => store.auth);
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEnrolledCourses = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`${PURCHASE_API_END_POINT}/`, { withCredentials: true });
+                console.log(response.data);
+                setEnrolledCourses(response.data.purchasedCourses);
+                setLoading(false);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchEnrolledCourses();
+    }, []);
+
+
     return (
         <main className="flex-1 p-6 space-y-6 bg-gradient-to-b from-[#395972]/5 to-white rounded">
 
@@ -46,32 +64,51 @@ function Dashboard() {
                 </div>
             </div>
 
+            {loading ? (
+                <div className="flex justify-center items-center h-40">
+                    <p>Loading your courses...</p>
+                </div>
+            ) : enrolledCourses.length === 0 ? (
+                <div className="text-center p-8 bg-white rounded-lg shadow-sm">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">No Courses Enrolled</h2>
+                    <p className="text-gray-600 mb-4">You haven't enrolled in any courses yet.</p>
+                    <Link to="/courses" className="inline-block px-4 py-2 bg-[#395972] text-white rounded-md hover:bg-[#2a4358] transition-colors">
+                        Browse Courses
+                    </Link>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {enrolledCourses.map((course, index) => (
+                        <Link to={`/course/progress/${course.courseId._id}`} key={index}>
+                            <Card className="shadow-lg border border-gray-200 bg-white transition-all hover:scale-105 cursor-pointer">
+                                <CardHeader className="flex items-center space-x-2">
+                                    <BookOpen className="text-[#395972]" />
+                                    <CardTitle className="text-lg font-semibold">{course.courseId.courseTitle}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Progress value={course.progress} className="mt-2 h-4 bg-gray-200" />
+                                    <div className="mt-2 flex justify-between items-center">
+                                        <p className="text-xs text-gray-600">{course.progress}% Complete</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courses.map((course, index) => (
-                    <Card key={index} className="shadow-lg border border-gray-200 bg-white transition-all hover:scale-105 cursor-pointer">
-                        <CardHeader className="flex items-center space-x-2">
-                            <BookOpen className="text-[#395972]" />
-                            <CardTitle className="text-lg font-semibold">{course.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Progress value={course.progress} className="mt-2 h-4 bg-gray-200" />
-                            <div className="mt-2 flex justify-between items-center">
-                                <p className="text-xs text-gray-600">{course.progress}% Complete</p>
-                                <p className="text-xs text-gray-500">~{course.timeToComplete} hours left</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
+                                        {/* Calculate estimated hours left */}
+                                        <p className="text-xs text-gray-500">
+                                            ~{Math.ceil(((course.courseId.totalLectures || 0) - (course.completedLectures || 0)) * 30 / 60)} hours left
+                                        </p>
+                                    </div>
+                                    {course.completed && (
+                                        <div className="mt-2 text-xs text-green-600 font-medium">
+                                            ✓ Course Completed
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    ))}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-
-
                 <div className="lg:col-span-1">
-
                     <Card className="shadow-lg border border-gray-200 bg-white">
                         <CardHeader className="flex items-center space-x-2">
                             <Clock className="text-[#395972]" />
@@ -90,9 +127,7 @@ function Dashboard() {
                             </ul>
                         </CardContent>
                     </Card>
-
                 </div>
-
 
                 <div className="lg:col-span-1">
                     <Card className="shadow-lg border border-gray-200 bg-white h-full">
@@ -111,7 +146,6 @@ function Dashboard() {
                         </CardContent>
                     </Card>
                 </div>
-
 
                 <div className="lg:col-span-2">
                     <Card className="shadow-lg border border-gray-200 bg-white">

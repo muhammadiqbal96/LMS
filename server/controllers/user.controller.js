@@ -233,3 +233,30 @@ export const updatePassword = async (req, res) => {
         });
     }
 };
+
+export const getInstructors = async (req, res) => {
+    try {
+        const instructors = await User.find({ role: "instructor" })
+            .select("name profile.profilePhoto profile.skills createdAt updatedAt");
+
+        if (!instructors || instructors.length === 0) {
+            return res.status(404).json({
+                message: "No instructors found.",
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            message: "Instructors retrieved successfully.",
+            instructors,
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "An unexpected error occurred.",
+            success: false,
+            error: error.message
+        });
+    }
+};

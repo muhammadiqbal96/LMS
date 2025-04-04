@@ -6,6 +6,7 @@ import connectDB from './utils/connectDB.js';
 import userRoute from "./routes/user.route.js";
 import courseRoute from "./routes/course.route.js";
 import purchaseRoute from "./routes/purchaseCourse.route.js";
+import courseProgressRoute from "./routes/courseProgress.route.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(cors(corsOptions));
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/purchase", purchaseRoute);
+app.use("/api/v1/progress", courseProgressRoute);
 
 connectDB();
 app.listen(PORT, () => {
